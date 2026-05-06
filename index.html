@@ -2,46 +2,106 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Levi Interiors Staff Panel</title>
+<title>Levi Interiors Staff</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 
 <style>
-body{font-family:'Segoe UI';background:#0f172a;color:#fff;margin:0;}
-.header{background:#020617;padding:15px;font-size:20px;font-weight:bold;}
-.container{padding:20px;}
-
-.card{background:#1e293b;padding:15px;border-radius:10px;margin-bottom:15px;}
-
-input,select{
-  padding:10px;
-  margin:5px 0;
-  width:100%;
-  border:none;
-  border-radius:6px;
+body{
+  margin:0;
+  font-family:system-ui;
+  background:#0f172a;
+  color:#fff;
 }
 
-.dashboard{display:flex;gap:10px;flex-wrap:wrap;}
-.box{flex:1;min-width:120px;padding:15px;border-radius:10px;text-align:center;}
+.header{
+  position:sticky;
+  top:0;
+  background:#020617;
+  padding:14px;
+  text-align:center;
+  font-size:18px;
+  font-weight:bold;
+}
+
+.container{padding:12px;}
+
+.card{
+  background:#1e293b;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+
+input,select{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  margin-top:6px;
+  font-size:16px;
+}
+
+.dashboard{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px;
+}
+
+.box{
+  padding:12px;
+  border-radius:10px;
+  text-align:center;
+}
 
 .pending{background:#f59e0b;}
 .cutting{background:#3b82f6;}
 .dispatch{background:#10b981;}
 
-.panel{background:#111827;padding:12px;margin:10px 0;border-radius:8px;}
+/* 🔥 PANEL */
+.panel{
+  background:#111827;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+  border-left:6px solid;
+}
 
-button{padding:6px 10px;border:none;border-radius:6px;margin:5px;cursor:pointer;}
+.panel.pending{border-color:#f59e0b;}
+.panel.cutting{border-color:#3b82f6;}
+.panel.dispatched{border-color:#10b981;}
+
+button{
+  flex:1;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  font-size:14px;
+}
+
 .cut{background:#3b82f6;color:#fff;}
 .dis{background:#10b981;color:#fff;}
 
-.progress{height:10px;background:#333;border-radius:10px;overflow:hidden;}
-.progress-bar{height:100%;background:#22c55e;}
+.progress{
+  height:8px;
+  background:#333;
+  border-radius:10px;
+  overflow:hidden;
+  margin-top:6px;
+}
+
+.progress-bar{
+  height:100%;
+  background:#22c55e;
+}
 </style>
 </head>
 
 <body>
 
-<div class="header">👷 Levi Interiors — Staff Panel</div>
+<div class="header">👷 Levi Interiors</div>
 
 <div class="container">
 
@@ -50,9 +110,9 @@ button{padding:6px 10px;border:none;border-radius:6px;margin:5px;cursor:pointer;
 </div>
 
 <div class="card">
-<b>Project:</b> <span id="pName"></span><br>
-<b>Panels:</b> <span id="pCount"></span><br>
-<b>Status:</b> <span id="pStatus"></span>
+<b id="pName"></b><br>
+Panels: <span id="pCount"></span><br>
+Status: <span id="pStatus"></span>
 </div>
 
 <div class="dashboard">
@@ -62,12 +122,12 @@ button{padding:6px 10px;border:none;border-radius:6px;margin:5px;cursor:pointer;
 </div>
 
 <div class="card">
-  <b>Progress</b>
+  Progress
   <div class="progress"><div id="bar" class="progress-bar"></div></div>
   <div id="progressText"></div>
 </div>
 
-<input id="search" placeholder="🔍 Search Panel ID" oninput="loadProject()">
+<input id="search" placeholder="Search Panel ID" oninput="loadProject()">
 
 <select id="filter" onchange="loadProject()">
   <option value="all">All</option>
@@ -84,11 +144,17 @@ button{padding:6px 10px;border:none;border-radius:6px;margin:5px;cursor:pointer;
 
 const API = "https://levi-api-zhbu.onrender.com";
 const socket = io(API);
-socket.on("refresh", loadProjects);
+
+socket.on("refresh", () => {
+  loadProjects();
+});
+
+// 🔊 SOUND
+const clickSound = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
 
 let projects=[];
 
-// LOAD PROJECTS FROM API
+// LOAD PROJECTS
 async function loadProjects(){
   let res = await fetch(API+"/api/projects");
   let data = await res.json();
@@ -105,19 +171,31 @@ async function loadProjects(){
   loadProject();
 }
 
-// UPDATE STATUS (FIXED)
+// UPDATE STATUS
 async function updateStatus(panelId,status){
 
   let id = document.getElementById("projectSelect").value;
 
+  if(!id){
+    alert("Select project first");
+    return;
+  }
+
   await fetch(API+"/api/projects/"+id+"/status",{
     method:"PUT",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      panelId:String(panelId).trim(),
-      status
-    })
+    body:JSON.stringify({ panelId, status })
   });
+
+  // 🔊 SOUND
+  clickSound.play();
+
+  // 📳 VIBRATION
+  if(navigator.vibrate){
+    navigator.vibrate(100);
+  }
+
+  loadProjects();
 }
 
 // LOAD PROJECT
@@ -145,19 +223,40 @@ function loadProject(){
     if(p.status==="cutting") cutting++;
     if(p.status==="dispatched") dispatch++;
 
-    let display = item.seq
-      ? `${item.seq} of ${p.totalGroupQty}`
-      : "1";
+    let display = item.seq ? `${item.seq}/${p.totalGroupQty}` : "1";
 
     html += `
-      <div class="panel">
-        <b>${pid}</b> — ${p.status}<br>
-        <b>${display}</b><br>
-        📏 ${item.length} × ${item.width}
-        <br>
-        <button class="cut" onclick="updateStatus('${pid}','cutting')">✂️ Cutting</button>
-        <button class="dis" onclick="updateStatus('${pid}','dispatched')">🚚 Dispatch</button>
+    <div class="panel ${p.status}">
+      <div style="display:flex;justify-content:space-between;">
+        <b>${pid}</b>
+        <span style="
+          font-size:11px;
+          padding:4px 8px;
+          border-radius:6px;
+          background:
+            ${p.status==="pending" ? "#f59e0b" :
+              p.status==="cutting" ? "#3b82f6" :
+              "#10b981"};
+        ">
+          ${p.status.toUpperCase()}
+        </span>
       </div>
+
+      <div style="margin-top:6px;">
+        ${display}<br>
+        ${item.length} × ${item.width}
+      </div>
+
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        ${p.status === "pending" ? `
+          <button class="cut" onclick="updateStatus('${pid}','cutting')">✂️ Cutting</button>
+        ` : ""}
+
+        ${p.status !== "dispatched" ? `
+          <button class="dis" onclick="updateStatus('${pid}','dispatched')">🚚 Dispatch</button>
+        ` : ""}
+      </div>
+    </div>
     `;
   });
 
@@ -172,9 +271,13 @@ function loadProject(){
   let percent = Math.round((done/total)*100 || 0);
 
   bar.style.width = percent + "%";
-  progressText.innerText = percent + "% Completed";
 
-  // PROJECT INFO
+  if(percent < 40) bar.style.background = "#f59e0b";
+  else if(percent < 80) bar.style.background = "#3b82f6";
+  else bar.style.background = "#10b981";
+
+  progressText.innerText = percent + "% Done";
+
   pName.innerText = project?.name || "-";
   pCount.innerText = project?.panels.length || 0;
 
@@ -188,6 +291,9 @@ function loadProject(){
 const pendingEl = document.getElementById("pending");
 const cuttingEl = document.getElementById("cutting");
 const dispatchEl = document.getElementById("dispatch");
+
+// AUTO REFRESH
+setInterval(loadProjects, 10000);
 
 window.onload = loadProjects;
 
