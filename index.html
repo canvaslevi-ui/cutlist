@@ -6,63 +6,36 @@
 
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
-body{
-  font-family:'Segoe UI';
-  background:#0f172a;
-  color:#fff;
-  margin:0;
-}
+body{font-family:'Segoe UI';background:#0f172a;color:#fff;margin:0;}
+.header{background:#020617;padding:15px;font-size:20px;font-weight:bold;}
+.container{padding:20px;}
 
-.header{
-  background:#020617;
-  padding:15px;
-  font-size:18px;
-  font-weight:bold;
-}
-
-.container{
-  padding:15px;
-}
-
-.card{
-  background:#1e293b;
-  padding:12px;
-  border-radius:10px;
-  margin-bottom:12px;
-}
+.card{background:#1e293b;padding:15px;border-radius:10px;margin-bottom:15px;}
 
 input,select{
-  width:100%;
   padding:10px;
   margin:5px 0;
+  width:100%;
   border:none;
   border-radius:6px;
 }
 
-.panel{
-  background:#111827;
-  padding:12px;
-  border-radius:10px;
-  margin:10px 0;
-}
+.dashboard{display:flex;gap:10px;flex-wrap:wrap;}
+.box{flex:1;min-width:120px;padding:15px;border-radius:10px;text-align:center;}
 
-button{
-  padding:6px 10px;
-  border:none;
-  border-radius:6px;
-  margin:5px;
-  cursor:pointer;
-}
+.pending{background:#f59e0b;}
+.cutting{background:#3b82f6;}
+.dispatch{background:#10b981;}
 
+.panel{background:#111827;padding:12px;margin:10px 0;border-radius:8px;}
+
+button{padding:6px 10px;border:none;border-radius:6px;margin:5px;cursor:pointer;}
 .cut{background:#3b82f6;color:#fff;}
 .dis{background:#10b981;color:#fff;}
 
-.status-pending{border-left:5px solid orange;}
-.status-cutting{border-left:5px solid #3b82f6;}
-.status-dispatched{border-left:5px solid #10b981;}
+.progress{height:10px;background:#333;border-radius:10px;overflow:hidden;}
+.progress-bar{height:100%;background:#22c55e;}
 </style>
 </head>
 
@@ -72,15 +45,30 @@ button{
 
 <div class="container">
 
-<!-- PROJECT SELECT -->
 <div class="card">
-  <select id="projectSelect" onchange="loadProject()"></select>
+<select id="projectSelect" onchange="loadProject()"></select>
 </div>
 
-<!-- SEARCH -->
+<div class="card">
+<b>Project:</b> <span id="pName"></span><br>
+<b>Panels:</b> <span id="pCount"></span><br>
+<b>Status:</b> <span id="pStatus"></span>
+</div>
+
+<div class="dashboard">
+  <div class="box pending">Pending<br><span id="pending">0</span></div>
+  <div class="box cutting">Cutting<br><span id="cutting">0</span></div>
+  <div class="box dispatch">Dispatch<br><span id="dispatch">0</span></div>
+</div>
+
+<div class="card">
+  <b>Progress</b>
+  <div class="progress"><div id="bar" class="progress-bar"></div></div>
+  <div id="progressText"></div>
+</div>
+
 <input id="search" placeholder="🔍 Search Panel ID" oninput="loadProject()">
 
-<!-- FILTER -->
 <select id="filter" onchange="loadProject()">
   <option value="all">All</option>
   <option value="pending">Pending</option>
@@ -88,37 +76,48 @@ button{
   <option value="dispatched">Dispatched</option>
 </select>
 
-<!-- LIST -->
 <div id="list"></div>
 
 </div>
 
 <script>
 
-// 🔥 IMPORTANT — YOUR LIVE API
 const API = "https://levi-api-zhbu.onrender.com";
-
-// SOCKET
 const socket = io(API);
 socket.on("refresh", loadProjects);
 
 let projects=[];
 
-// LOAD PROJECTS
+// LOAD PROJECTS FROM API
 async function loadProjects(){
   let res = await fetch(API+"/api/projects");
   let data = await res.json();
 
   projects = data.data;
 
-  let s = document.getElementById("projectSelect");
-  s.innerHTML="";
+  let select = document.getElementById("projectSelect");
+  select.innerHTML = "";
 
   projects.forEach(p=>{
-    s.innerHTML += `<option value="${p._id}">${p.name}</option>`;
+    select.innerHTML += `<option value="${p._id}">${p.name}</option>`;
   });
 
   loadProject();
+}
+
+// UPDATE STATUS (FIXED)
+async function updateStatus(panelId,status){
+
+  let id = document.getElementById("projectSelect").value;
+
+  await fetch(API+"/api/projects/"+id+"/status",{
+    method:"PUT",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      panelId:String(panelId).trim(),
+      status
+    })
+  });
 }
 
 // LOAD PROJECT
@@ -128,51 +127,68 @@ function loadProject(){
   let search = document.getElementById("search").value.toLowerCase();
   let filter = document.getElementById("filter").value;
 
-  let p = projects.find(x=>x._id === id);
+  let project = projects.find(p=>p._id === id);
 
-  let html = "";
+  let html="";
+  let pending=0, cutting=0, dispatch=0;
 
-  p?.panels.forEach(panel=>{
+  project?.panels.forEach(p=>{
 
-    // SEARCH
-    if(search && !panel.id.toLowerCase().includes(search)) return;
+    let pid = String(p.id).trim();
 
-    // FILTER
-    if(filter !== "all" && panel.status !== filter) return;
+    if(search && !pid.toLowerCase().includes(search)) return;
+    if(filter !== "all" && p.status !== filter) return;
 
-    let i = panel.items[0];
+    let item = p.items[0];
+
+    if(p.status==="pending") pending++;
+    if(p.status==="cutting") cutting++;
+    if(p.status==="dispatched") dispatch++;
+
+    let display = item.seq
+      ? `${item.seq} of ${p.totalGroupQty}`
+      : "1";
 
     html += `
-      <div class="panel status-${panel.status}">
-        <b>${panel.id}</b> — ${panel.status}<br>
-        <b>Total Pieces: ${i.seq} of ${panel.totalGroupQty}</b><br>
-        📏 ${i.length} × ${i.width}
-
+      <div class="panel">
+        <b>${pid}</b> — ${p.status}<br>
+        <b>${display}</b><br>
+        📏 ${item.length} × ${item.width}
         <br>
-
-        <button class="cut" onclick="updateStatus('${panel.id}','cutting')">✂️ Cutting</button>
-        <button class="dis" onclick="updateStatus('${panel.id}','dispatched')">🚚 Dispatch</button>
+        <button class="cut" onclick="updateStatus('${pid}','cutting')">✂️ Cutting</button>
+        <button class="dis" onclick="updateStatus('${pid}','dispatched')">🚚 Dispatch</button>
       </div>
     `;
   });
 
-  document.getElementById("list").innerHTML = html;
+  list.innerHTML = html;
+
+  pendingEl.innerText = pending;
+  cuttingEl.innerText = cutting;
+  dispatchEl.innerText = dispatch;
+
+  let total = pending + cutting + dispatch;
+  let done = cutting + dispatch;
+  let percent = Math.round((done/total)*100 || 0);
+
+  bar.style.width = percent + "%";
+  progressText.innerText = percent + "% Completed";
+
+  // PROJECT INFO
+  pName.innerText = project?.name || "-";
+  pCount.innerText = project?.panels.length || 0;
+
+  let status = "Pending";
+  if(done === total && total > 0) status = "Completed";
+  else if(done > 0) status = "In Progress";
+
+  pStatus.innerText = status;
 }
 
-// UPDATE STATUS
-async function updateStatus(panelId,status){
+const pendingEl = document.getElementById("pending");
+const cuttingEl = document.getElementById("cutting");
+const dispatchEl = document.getElementById("dispatch");
 
-  let id = document.getElementById("projectSelect").value;
-
-  await fetch(API+"/api/projects/"+id+"/status",{
-    method:"PUT",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({panelId,status})
-  });
-
-}
-
-// INIT
 window.onload = loadProjects;
 
 </script>
