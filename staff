@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Levi Interiors Staff Panel</title>
+
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+<style>
+body{
+  font-family:'Segoe UI';
+  background:#0f172a;
+  color:#fff;
+  margin:0;
+}
+
+.header{
+  background:#020617;
+  padding:15px 20px;
+  font-size:20px;
+  font-weight:bold;
+}
+
+.container{
+  padding:20px;
+}
+
+.card{
+  background:#1e293b;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:15px;
+}
+
+.dashboard{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.box{
+  flex:1;
+  min-width:120px;
+  padding:15px;
+  border-radius:10px;
+  text-align:center;
+}
+
+.pending{background:#f59e0b;}
+.cutting{background:#3b82f6;}
+.dispatch{background:#10b981;}
+
+input,select{
+  padding:10px;
+  margin:5px 0;
+  width:100%;
+  border:none;
+  border-radius:6px;
+}
+
+.panel{
+  background:#111827;
+  padding:12px;
+  margin:10px 0;
+  border-radius:8px;
+}
+
+button{
+  padding:6px 10px;
+  border:none;
+  border-radius:6px;
+  margin:5px;
+  cursor:pointer;
+}
+
+.cut{background:#3b82f6;color:#fff;}
+.dis{background:#10b981;color:#fff;}
+
+.progress{
+  height:10px;
+  background:#333;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.progress-bar{
+  height:100%;
+  background:#22c55e;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">👷 Levi Interiors — Staff Panel</div>
+
+<div class="container">
+
+<!-- PROJECT SELECT -->
+<div class="card">
+  <select id="projectSelect" onchange="loadProject()"></select>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard">
+  <div class="box pending">Pending<br><span id="pending">0</span></div>
+  <div class="box cutting">Cutting<br><span id="cutting">0</span></div>
+  <div class="box dispatch">Dispatch<br><span id="dispatch">0</span></div>
+</div>
+
+<!-- PROGRESS -->
+<div class="card">
+  <div class="progress">
+    <div id="bar" class="progress-bar"></div>
+  </div>
+  <div id="progressText"></div>
+</div>
+
+<!-- SEARCH -->
+<input id="search" placeholder="🔍 Search Panel ID" oninput="loadProject()">
+
+<!-- FILTER -->
+<select id="filter" onchange="loadProject()">
+  <option value="all">All</option>
+  <option value="pending">Pending</option>
+  <option value="cutting">Cutting</option>
+  <option value="dispatched">Dispatched</option>
+</select>
+
+<!-- PANEL LIST -->
+<div id="list"></div>
+
+</div>
+
+<script>
+
+const API = "http://localhost:3000";
+const socket = io(API);
+
+socket.on("refresh", loadProjects);
+
+let projects=[];
+
+// LOAD PROJECTS
+async function loadProjects(){
+  let res = await fetch(API+"/api/projects");
+  let data = await res.json();
+
+  projects = data.data;
+
+  let s = projectSelect;
+  s.innerHTML="";
+
+  projects.forEach(p=>{
+    s.innerHTML+=`<option value="${p._id}">${p.name}</option>`;
+  });
+
+  loadProject();
+}
+
+// LOAD PROJECT
+function loadProject(){
+
+  let id = projectSelect.value;
+  let search = document.getElementById("search").value.toLowerCase();
+  let filter = document.getElementById("filter").value;
+
+  let p = projects.find(x=>x._id===id);
+
+  let html="";
+  let pending=0,cutting=0,dispatch=0;
+
+  p?.panels.forEach(panel=>{
+
+    if(search && !panel.id.toLowerCase().includes(search)) return;
+    if(filter!=="all" && panel.status!==filter) return;
+
+    let i = panel.items[0];
+
+    if(panel.status==="pending") pending++;
+    if(panel.status==="cutting") cutting++;
+    if(panel.status==="dispatched") dispatch++;
+
+    html+=`
+      <div class="panel">
+        <b>${panel.id}</b> — ${panel.status}<br>
+        <b>${i.seq} of ${panel.totalGroupQty}</b><br>
+        📏 ${i.length} × ${i.width}
+        <br>
+        <button class="cut" onclick="updateStatus('${panel.id}','cutting')">✂️ Cutting</button>
+        <button class="dis" onclick="updateStatus('${panel.id}','dispatched')">🚚 Dispatch</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("list").innerHTML = html;
+
+  document.getElementById("pending").innerText = pending;
+  document.getElementById("cutting").innerText = cutting;
+  document.getElementById("dispatch").innerText = dispatch;
+
+  let total = pending + cutting + dispatch;
+  let done = cutting + dispatch;
+  let percent = Math.round((done/total)*100 || 0);
+
+  document.getElementById("bar").style.width = percent + "%";
+  document.getElementById("progressText").innerText = percent + "% Completed";
+}
+
+// UPDATE STATUS
+async function updateStatus(panelId,status){
+
+  let id = projectSelect.value;
+
+  await fetch(API+"/api/projects/"+id+"/status",{
+    method:"PUT",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({panelId,status})
+  });
+
+}
+
+// INIT
+window.onload = loadProjects;
+
+</script>
+
+</body>
+</html>
