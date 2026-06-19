@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Levi Interiors Staff</title>
+<title>Living Interior Cut List Staff</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 
@@ -15,19 +15,15 @@ body{margin:0;font-family:system-ui;background:#0f172a;color:#fff;}
   display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;
   z-index:10;
 }
-.header-title{font-size:18px;font-weight:bold;display:flex;align-items:center;gap:10px;}
-.header-title span{font-size:14px;font-weight:normal;color:#94a3b8;}
-.header-actions{display:flex;gap:8px;flex-wrap:wrap;}
-.header-actions button{padding:8px 16px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:13px;}
-.print-all-btn{background:#8b5cf6;color:#fff;}
-.refresh-btn{background:#3b82f6;color:#fff;}
-.admin-btn{background:#f59e0b;color:#000;}
+.header-title{font-size:18px;font-weight:bold;}
+.header-title span{color:#3b82f6;}
 
 .container{padding:12px;max-width:1200px;margin:0 auto;}
 
 .card{background:#1e293b;padding:12px;border-radius:10px;margin-bottom:10px;}
 
 input,select{width:100%;padding:12px;border:none;border-radius:8px;margin-top:6px;font-size:16px;background:#0f172a;color:#fff;}
+
 select option{background:#1e293b;}
 
 .dashboard{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
@@ -45,14 +41,14 @@ select option{background:#1e293b;}
 .panel.cutting{border-color:#3b82f6;}
 .panel.dispatched{border-color:#10b981;opacity:0.7;}
 
-.panel-header{display:flex;justify-content:space-between;align-items:center;}
-.panel-id{font-weight:bold;font-size:16px;}
+.panel-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+.panel-id{font-weight:bold;font-size:20px;color:#3b82f6;font-family:'Courier New',monospace;letter-spacing:1px;}
 .panel-status{font-size:11px;padding:4px 10px;border-radius:12px;font-weight:600;}
 .panel-status.pending{background:#f59e0b;color:#000;}
 .panel-status.cutting{background:#3b82f6;color:#fff;}
 .panel-status.dispatched{background:#10b981;color:#fff;}
 
-.panel-details{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px;font-size:13px;color:#94a3b8;}
+.panel-details{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;font-size:13px;color:#94a3b8;}
 .panel-details strong{color:#fff;}
 
 .panel-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
@@ -66,7 +62,6 @@ select option{background:#1e293b;}
 .progress-bar{height:100%;background:#22c55e;transition:width 0.5s;}
 
 .filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.price-tag{font-size:12px;color:#22c55e;font-weight:bold;}
 
 .loading{text-align:center;padding:30px;color:#94a3b8;}
 .loading .spinner{display:inline-block;width:30px;height:30px;border:3px solid #1e293b;border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;}
@@ -76,97 +71,93 @@ select option{background:#1e293b;}
 .error-box h3{color:#fca5a5;margin-bottom:8px;}
 .error-box p{color:#fecaca;font-size:14px;}
 
+/* Success message */
 .success-msg{background:#065f46;padding:8px 16px;border-radius:6px;color:#a7f3d0;font-size:13px;margin-top:6px;display:none;}
 .success-msg.show{display:block;}
 
-.server-status{padding:4px 10px;border-radius:4px;font-size:11px;display:inline-block;margin-left:8px;}
-.server-status.online{background:#065f46;color:#a7f3d0;}
-.server-status.offline{background:#7f1d1d;color:#fca5a5;}
-.server-status.checking{background:#1e3a5f;color:#93c5fd;}
-
-.empty-state{text-align:center;padding:40px 20px;color:#94a3b8;}
-.empty-state .icon{font-size:48px;margin-bottom:12px;}
-.empty-state h3{color:#fff;margin-bottom:4px;}
-.empty-state p{font-size:14px;}
+/* Coming Soon Popup */
+.coming-soon-overlay{
+  display:none;
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.7);
+  z-index:999;
+  justify-content:center;
+  align-items:center;
+  backdrop-filter:blur(4px);
+}
+.coming-soon-overlay.show{display:flex;}
+.coming-soon-box{
+  background:#1e293b;
+  padding:40px 50px;
+  border-radius:16px;
+  text-align:center;
+  max-width:400px;
+  animation:popIn 0.3s ease;
+  border:2px solid #8b5cf6;
+}
+@keyframes popIn{
+  from{transform:scale(0.8);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+.coming-soon-box .icon{font-size:60px;margin-bottom:10px;}
+.coming-soon-box h2{font-size:24px;margin-bottom:8px;color:#8b5cf6;}
+.coming-soon-box p{color:#94a3b8;font-size:14px;margin-bottom:20px;}
+.coming-soon-box .close-btn{background:#8b5cf6;color:#fff;padding:10px 30px;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer;}
+.coming-soon-box .close-btn:hover{opacity:0.9;}
 
 @media (max-width:600px){
-  .panel-details{grid-template-columns:1fr 1fr;}
+  .panel-details{grid-template-columns:1fr;}
   .filters{grid-template-columns:1fr;}
   .header{flex-direction:column;}
-  .header-actions{width:100%;}
-  .header-actions button{flex:1;}
+  .panel-id{font-size:17px;}
+  .coming-soon-box{padding:30px 20px;margin:20px;}
 }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-title">
-    👷 Levi Interiors - Staff Panel
-    <span>| Production Floor</span>
-  </div>
-  <div class="header-actions">
-    <button class="refresh-btn" onclick="loadProjects()">🔄 Refresh</button>
-    <button class="print-all-btn" onclick="printAllStickers()">🖨️ Print All Stickers</button>
-    <button class="admin-btn" onclick="openAdminPanel()">🔧 Admin</button>
-  </div>
+  <span class="header-title">🏠 <span>Living Interior</span> - Cut List Staff</span>
 </div>
 
 <div class="container">
 
-<!-- Server Status -->
-<div class="card">
-  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-    <span>📡 Server: <span id="serverStatus" class="server-status checking">Checking...</span></span>
-    <span style="font-size:12px;color:#94a3b8;">API: <strong id="apiDisplay">https://levi-api-zhbu.onrender.com</strong></span>
-  </div>
-</div>
-
-<!-- Project Selector -->
 <div class="card">
 <select id="projectSelect" onchange="loadProject()">
   <option value="">Loading projects...</option>
 </select>
 </div>
 
-<!-- Project Info -->
 <div class="card">
-  <b id="pName">-</b><br>
-  <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;">
-    <span>📦 Panels: <strong id="pCount">0</strong></span>
-    <span>📊 Status: <strong id="pStatus">-</strong></span>
-    <span>💰 Price: ₹<strong id="pPrice">0</strong></span>
-    <span>🏷️ Stickers: <strong id="pStickers">0</strong></span>
-  </div>
-  <div id="statusMsg" class="success-msg"></div>
+<b id="pName">-</b><br>
+Panels: <span id="pCount">0</span> | 
+Status: <span id="pStatus">-</span>
+<div id="statusMsg" class="success-msg"></div>
 </div>
 
-<!-- Dashboard -->
 <div class="dashboard">
   <div class="box pending">⏳ Pending<br><span id="pending">0</span></div>
   <div class="box cutting">✂️ Cutting<br><span id="cutting">0</span></div>
   <div class="box dispatch">🚚 Dispatch<br><span id="dispatch">0</span></div>
 </div>
 
-<!-- Progress -->
 <div class="card">
   Progress
   <div class="progress"><div id="bar" class="progress-bar" style="width:0%;"></div></div>
   <div id="progressText" style="font-size:13px;color:#94a3b8;margin-top:4px;">0% Done</div>
 </div>
 
-<!-- Filters -->
 <div class="filters">
   <input id="search" placeholder="🔍 Search Panel ID" oninput="loadProject()">
   <select id="filter" onchange="loadProject()">
     <option value="all">All Status</option>
-    <option value="pending">⏳ Pending</option>
-    <option value="cutting">✂️ Cutting</option>
-    <option value="dispatched">🚚 Dispatched</option>
+    <option value="pending">Pending</option>
+    <option value="cutting">Cutting</option>
+    <option value="dispatched">Dispatched</option>
   </select>
 </div>
 
-<!-- Panel List -->
 <div id="list">
   <div class="loading">
     <div class="spinner"></div>
@@ -176,26 +167,31 @@ select option{background:#1e293b;}
 
 </div>
 
+<!-- Coming Soon Popup -->
+<div class="coming-soon-overlay" id="comingSoonOverlay">
+  <div class="coming-soon-box">
+    <div class="icon">🖨️</div>
+    <h2>Coming Soon!</h2>
+    <p>Print feature is under development.<br>We'll notify you when it's ready!</p>
+    <button class="close-btn" onclick="closeComingSoon()">Got it!</button>
+  </div>
+</div>
+
 <script>
 
 // ==========================================
 // CONFIGURATION
 // ==========================================
-const API = "https://levi-api-zhbu.onrender.com";
-document.getElementById('apiDisplay').textContent = API;
+const API = 'https://levi-api-zhbu.onrender.com';
 
-console.log('📡 Staff Panel API URL:', API);
+console.log('📡 API URL:', API);
 
 // ==========================================
 // SOCKET CONNECTION
 // ==========================================
 let socket;
 try {
-  socket = io(API, {
-    timeout: 5000,
-    reconnection: true,
-    reconnectionAttempts: 3
-  });
+  socket = io(API);
   socket.on('connect', () => console.log('✅ Socket connected'));
   socket.on('connect_error', (err) => console.log('❌ Socket error:', err.message));
   socket.on('refresh', () => {
@@ -206,42 +202,10 @@ try {
   console.log('❌ Socket init error:', err.message);
 }
 
-// ==========================================
-// SOUND EFFECT
-// ==========================================
 const clickSound = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
 
 let projects = [];
 let loading = false;
-
-// ==========================================
-// CHECK SERVER STATUS
-// ==========================================
-async function checkServerStatus() {
-  const statusEl = document.getElementById('serverStatus');
-  statusEl.className = 'server-status checking';
-  statusEl.textContent = 'Checking...';
-  
-  try {
-    const res = await fetch(API + '/api/projects', {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(5000)
-    });
-    
-    if (res.ok) {
-      statusEl.className = 'server-status online';
-      statusEl.textContent = '✅ Online';
-    } else {
-      statusEl.className = 'server-status offline';
-      statusEl.textContent = '⚠️ Error ' + res.status;
-    }
-  } catch (err) {
-    statusEl.className = 'server-status offline';
-    statusEl.textContent = '❌ Offline';
-    console.error('Server check failed:', err);
-  }
-}
 
 // ==========================================
 // LOAD PROJECTS
@@ -255,8 +219,7 @@ async function loadProjects() {
     
     const res = await fetch(API + '/api/projects', {
       method: 'GET',
-      headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(10000)
+      headers: { 'Accept': 'application/json' }
     });
 
     if (!res.ok) {
@@ -264,6 +227,7 @@ async function loadProjects() {
     }
 
     const data = await res.json();
+    console.log('📦 Received data:', data);
 
     if (!data.success) {
       throw new Error(data.message || 'API returned error');
@@ -279,48 +243,31 @@ async function loadProjects() {
     if (projects.length === 0) {
       select.innerHTML = '<option value="">No projects found</option>';
       document.getElementById('list').innerHTML = `
-        <div class="empty-state">
-          <div class="icon">📭</div>
-          <h3>No Projects</h3>
-          <p>Upload a project from the Admin panel first</p>
-          <button onclick="openAdminPanel()" style="margin-top:12px;padding:8px 20px;background:#f59e0b;border:none;border-radius:6px;color:#000;cursor:pointer;width:auto;">Open Admin Panel</button>
+        <div style="text-align:center;padding:40px;color:#94a3b8;">
+          <p style="font-size:20px;margin-bottom:10px;">📭 No projects</p>
+          <p style="font-size:14px;">Upload a project from the Admin panel first</p>
         </div>
       `;
     } else {
       projects.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p._id;
-        const stickerCount = p.panels.filter(panel => panel.stickerFileName).length;
-        opt.textContent = p.name + ' (' + p.panels.length + ' panels, ' + stickerCount + ' stickers)';
+        opt.textContent = p.name + ' (' + p.panels.length + ' panels)';
         select.appendChild(opt);
       });
-      // If URL has ?id= parameter, select that project
-      const urlParams = new URLSearchParams(window.location.search);
-      const idParam = urlParams.get('id');
-      if (idParam && projects.find(p => p._id === idParam)) {
-        select.value = idParam;
-      } else {
-        select.value = currentVal || projects[0]?._id || '';
-      }
+      select.value = currentVal || projects[0]?._id || '';
     }
 
     loadProject();
 
-    // Update server status
-    document.getElementById('serverStatus').className = 'server-status online';
-    document.getElementById('serverStatus').textContent = '✅ Online';
-
   } catch (err) {
     console.error('❌ Load error:', err);
-    document.getElementById('serverStatus').className = 'server-status offline';
-    document.getElementById('serverStatus').textContent = '❌ Offline';
-    
     document.getElementById('list').innerHTML = `
       <div class="error-box">
         <h3>⚠️ Connection Error</h3>
         <p>${err.message}</p>
-        <p style="margin-top:8px;font-size:12px;">API: ${API}</p>
-        <button onclick="loadProjects()" style="margin-top:12px;padding:8px 20px;background:#3b82f6;border:none;border-radius:6px;color:#fff;cursor:pointer;width:auto;">Retry</button>
+        <p style="margin-top:8px;font-size:12px;">Make sure the server is running at: ${API}</p>
+        <button onclick="loadProjects()" style="margin-top:12px;padding:8px 20px;background:#3b82f6;border:none;border-radius:6px;color:#fff;cursor:pointer;">Retry</button>
       </div>
     `;
     document.getElementById('projectSelect').innerHTML = '<option value="">Error loading projects</option>';
@@ -343,16 +290,20 @@ function loadProject() {
     document.getElementById('pName').innerText = '-';
     document.getElementById('pCount').innerText = '0';
     document.getElementById('pStatus').innerText = '-';
-    document.getElementById('pPrice').innerText = '0';
-    document.getElementById('pStickers').innerText = '0';
     return;
   }
 
+  // Sort panels by ID number
+  const sortedPanels = [...project.panels].sort((a, b) => {
+    const numA = parseInt(String(a.id).replace(/[^0-9]/g, '')) || 0;
+    const numB = parseInt(String(b.id).replace(/[^0-9]/g, '')) || 0;
+    return numA - numB;
+  });
+
   let html = '';
   let pending = 0, cutting = 0, dispatch = 0;
-  let totalPrice = 0;
 
-  project.panels.forEach(p => {
+  sortedPanels.forEach(p => {
     const pid = String(p.id).trim();
 
     if (search && !pid.toLowerCase().includes(search)) return;
@@ -361,12 +312,9 @@ function loadProject() {
     if (p.status === 'pending') pending++;
     if (p.status === 'cutting') cutting++;
     if (p.status === 'dispatched') dispatch++;
-    totalPrice += (p.price || 0);
 
     const item = p.items[0];
     const display = item.seq ? `${item.seq}/${p.totalGroupQty || 1}` : '1';
-    const priceDisplay = p.price ? `₹${p.price}` : '—';
-    const stickerAssigned = p.stickerFileName ? '✅ Assigned' : '❌ No Sticker';
 
     html += `
     <div class="panel ${p.status}">
@@ -377,9 +325,6 @@ function loadProject() {
       <div class="panel-details">
         <div><strong>Size:</strong> ${item.length}×${item.width}mm</div>
         <div><strong>Qty:</strong> ${display}</div>
-        <div><strong>Price:</strong> <span class="price-tag">${priceDisplay}</span></div>
-        <div><strong>Sticker:</strong> ${stickerAssigned}</div>
-        <div><strong>Page:</strong> ${p.stickerPage || 'N/A'}</div>
       </div>
       <div class="panel-actions">
         ${p.status === 'pending' ? `
@@ -388,9 +333,7 @@ function loadProject() {
         ${p.status !== 'dispatched' ? `
           <button class="dis" onclick="updateStatus('${pid}','dispatched')">🚚 Dispatch</button>
         ` : ''}
-        ${p.stickerFileName ? `
-          <button class="print-btn" onclick="printSingleSticker('${pid}')">🖨️ Sticker</button>
-        ` : ''}
+        <button class="print-btn" onclick="showComingSoon()">🖨️ Print</button>
       </div>
     </div>
     `;
@@ -417,16 +360,13 @@ function loadProject() {
 
   document.getElementById('pName').innerText = project.name;
   document.getElementById('pCount').innerText = total;
-  document.getElementById('pPrice').innerText = totalPrice.toLocaleString();
-  
-  const stickerCount = project.panels.filter(p => p.stickerFileName).length;
-  document.getElementById('pStickers').innerText = stickerCount;
 
   let status = 'Pending';
   if (done === total && total > 0) status = '✅ Completed';
   else if (done > 0) status = '⏳ In Progress';
   document.getElementById('pStatus').innerText = status;
 
+  // Hide status message after 3 seconds
   setTimeout(() => {
     const msg = document.getElementById('statusMsg');
     msg.className = 'success-msg';
@@ -452,6 +392,7 @@ async function updateStatus(panelId, status) {
 
     if (!res.ok) throw new Error('Status update failed');
 
+    // Show success message
     const msg = document.getElementById('statusMsg');
     msg.innerText = `✅ Panel ${panelId} updated to ${status}`;
     msg.className = 'success-msg show';
@@ -466,54 +407,29 @@ async function updateStatus(panelId, status) {
 }
 
 // ==========================================
-// PRINT ALL STICKERS - Opens Original PDFs in New Window
+// COMING SOON POPUP
 // ==========================================
-function printAllStickers() {
-  const id = document.getElementById('projectSelect').value;
-  if (!id) {
-    alert('Please select a project first');
-    return;
-  }
-  window.open(API + '/api/projects/' + id + '/print-stickers', '_blank');
+function showComingSoon() {
+  document.getElementById('comingSoonOverlay').classList.add('show');
 }
 
-// ==========================================
-// PRINT SINGLE STICKER - ORIGINAL PDF
-// ==========================================
-function printSingleSticker(panelId) {
-  const projectId = document.getElementById('projectSelect').value;
-  if (!projectId) {
-    alert('Please select a project first');
-    return;
-  }
-
-  const cleanId = panelId.replace('#', '').trim();
-  const url = API + '/api/projects/' + projectId + '/sticker/' + encodeURIComponent(cleanId);
-  
-  console.log('🖨️ Opening sticker:', url);
-  
-  // Open in new window/tab
-  const win = window.open(url, '_blank');
-  
-  // If popup blocked, try alternative
-  if (!win) {
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
+function closeComingSoon() {
+  document.getElementById('comingSoonOverlay').classList.remove('show');
 }
 
-// ==========================================
-// OPEN ADMIN PANEL
-// ==========================================
-function openAdminPanel() {
-  const adminUrl = window.location.pathname.replace('staff.html', 'admin.html');
-  window.open(adminUrl, '_blank');
-}
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeComingSoon();
+  }
+});
+
+// Close on overlay click
+document.getElementById('comingSoonOverlay').addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeComingSoon();
+  }
+});
 
 // ==========================================
 // AUTO REFRESH
@@ -525,7 +441,6 @@ setInterval(loadProjects, 30000);
 // ==========================================
 window.onload = function() {
   console.log('🚀 Staff panel loaded');
-  checkServerStatus();
   loadProjects();
 };
 
